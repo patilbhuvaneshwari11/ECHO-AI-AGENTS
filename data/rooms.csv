@@ -1,0 +1,7 @@
+room_id,block,floor,capacity,has_lift
+A101,A,0,60,True
+A201,A,2,80,False
+B101,B,0,120,True
+B102,B,0,90,True
+C101,C,0,100,True
+C201,C,1,50,False
