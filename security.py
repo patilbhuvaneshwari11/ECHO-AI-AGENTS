@@ -1,7 +1,8 @@
 import re
 import time
+import csv
+from pathlib import Path
 from collections import defaultdict, deque
-
 MAX_LEN = 300
 
 BLOCKED_PATTERNS = [
@@ -73,6 +74,11 @@ def validate_feedback(student_id, feedback):
     if not allowed:
         return False, reason
 
+    valid_reference, reference_reason = validate_lab_reference(feedback)
+
+    if not valid_reference:
+        return False, reference_reason
+
     now = time.monotonic()
     submissions = feedback_submissions[student_id]
 
@@ -95,3 +101,49 @@ def can_modify_slot(authenticated_staff_id, slot_owner_id):
         return False
 
     return authenticated_staff_id == slot_owner_id
+
+# Room and laboratory reference validation
+
+ROOMS_FILE = Path(__file__).resolve().parent / "data" / "rooms.csv"
+
+LAB_REFERENCE_PATTERN = re.compile(
+    r"\b(?:lab(?:oratory)?|room)\b\s*(?:in\s+|[-:#]\s*)?([A-Z]\d{3})\b"
+    r"|\b([A-Z]\d{3})\s+(?:lab(?:oratory)?|room)\b",
+    re.IGNORECASE
+)
+
+
+def validate_lab_reference(feedback):
+    """Check whether a referenced room/lab ID exists."""
+
+    matches = LAB_REFERENCE_PATTERN.finditer(feedback or "")
+
+    room_ids = [
+        (match.group(1) or match.group(2)).upper()
+        for match in matches
+    ]
+
+    if not room_ids:
+        return True, "No room/lab reference found."
+
+    try:
+        with ROOMS_FILE.open("r", newline="", encoding="utf-8") as file:
+            reader = csv.DictReader(file)
+
+            if not reader.fieldnames or "room_id" not in reader.fieldnames:
+                return False, "Room directory is invalid."
+
+            valid_rooms = {
+                row["room_id"].strip().upper()
+                for row in reader
+                if row.get("room_id")
+            }
+
+    except (OSError, csv.Error, UnicodeError):
+        return False, "Unable to verify room information."
+
+    for room_id in room_ids:
+        if room_id not in valid_rooms:
+            return False, f"Unknown room/lab ID: {room_id}."
+
+    return True, "Room/lab reference valid."

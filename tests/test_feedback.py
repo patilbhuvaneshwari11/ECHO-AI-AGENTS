@@ -46,6 +46,19 @@ class TestFeedbackSecurity(unittest.TestCase):
         )
         self.assertFalse(result)
 
+    def test_valid_room_reference(self):
+        result, message = validate_feedback(
+            "student_room1",
+            "The lab A101 needs repair."
+        )
+        self.assertTrue(result)
+
+    def test_nonexistent_lab_rejected(self):
+        result, message = validate_feedback(
+            "student_room2",
+            "The lab Z999 needs repair."
+        )
+        self.assertFalse(result)
 
 if __name__ == "__main__":
     unittest.main()
