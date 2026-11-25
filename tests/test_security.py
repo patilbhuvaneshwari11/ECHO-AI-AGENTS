@@ -49,14 +49,14 @@ class TestSecurity(unittest.TestCase):
     def test_staff_cannot_approve_request(self):
         self.assertFalse(has_permission("staff", "approve_request"))
 
-    def test_viewer_can_view_timetable(self):
-        self.assertTrue(has_permission("viewer", "view_timetable"))
+    def test_student_can_view_timetable(self):
+        self.assertTrue(has_permission("student", "view_timetable"))
 
-    def test_viewer_cannot_submit_request(self):
-        self.assertFalse(has_permission("viewer", "submit_request"))
+    def test_student_can_submit_feedback(self):
+        self.assertTrue(has_permission("student", "submit_feedback"))
 
-    def test_viewer_cannot_approve_request(self):
-        self.assertFalse(has_permission("viewer", "approve_request"))
+    def test_student_cannot_approve_request(self):
+        self.assertFalse(has_permission("student", "approve_request"))
 
     def test_unknown_role_denied(self):
         self.assertFalse(has_permission("unknown", "view_timetable"))

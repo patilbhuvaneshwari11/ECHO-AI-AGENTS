@@ -1,4 +1,6 @@
 import re
+import time
+from collections import defaultdict, deque
 
 MAX_LEN = 300
 
@@ -30,20 +32,18 @@ def check_input(text):
 ROLE_PERMISSIONS = {
     "admin": [
         "view_timetable",
-        "submit_request",
         "approve_request",
         "run_simulation",
         "view_audit",
         "manage_users"
     ],
-
     "staff": [
         "view_timetable",
         "submit_request"
     ],
-
-    "viewer": [
-        "view_timetable"
+    "student": [
+        "view_timetable",
+        "submit_feedback"
     ]
 }
 
@@ -56,3 +56,42 @@ def has_permission(role, action):
 def can_run(role):
     """Check whether a user can run simulations."""
     return has_permission(role, "run_simulation")
+
+# Student feedback rate limiting
+
+MAX_FEEDBACK = 5
+FEEDBACK_WINDOW = 3600
+
+feedback_submissions = defaultdict(deque)
+
+
+def validate_feedback(student_id, feedback):
+    """Validate feedback and limit each student to 5 submissions per hour."""
+
+    allowed, reason = check_input(feedback)
+
+    if not allowed:
+        return False, reason
+
+    now = time.monotonic()
+    submissions = feedback_submissions[student_id]
+
+    while submissions and now - submissions[0] >= FEEDBACK_WINDOW:
+        submissions.popleft()
+
+    if len(submissions) >= MAX_FEEDBACK:
+        return False, "Feedback limit reached. Try again later."
+
+    submissions.append(now)
+
+    return True, "Feedback accepted."
+
+# Staff timetable ownership validation
+
+def can_modify_slot(authenticated_staff_id, slot_owner_id):
+    """Allow staff to modify only their own timetable slots."""
+
+    if not authenticated_staff_id or not slot_owner_id:
+        return False
+
+    return authenticated_staff_id == slot_owner_id
