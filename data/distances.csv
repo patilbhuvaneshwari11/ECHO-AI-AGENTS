@@ -1,0 +1,4 @@
+from_block,to_block,walking_minutes
+A,B,5
+B,C,8
+A,C,12
