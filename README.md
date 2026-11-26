@@ -210,7 +210,14 @@ ECHO protects the **decision process** with five measures:
 
 1. **Input checks:** minimum and maximum length (300 characters).
 2. **Prompt-injection blocking:** blocked patterns, plus user text is passed to the AI as data between markers.
-3. **Role-based access:** only `admin` can run simulations and see the audit log (demo login; the college replaces it with real login).
+3. **Role-based access control (RBAC):**
+   - Admin: Full permissions, including managing users,
+     approving requests, running simulations and viewing audit logs.
+   - Staff: Can view timetables and submit change requests.
+   - Viewer: Read-only access; cannot submit or approve changes.
+   - Unknown roles are denied access by default.
+   - Demo permissions are defined in security.py;
+     real college authentication will be integrated later.
 4. **Audit log:** every action (run, block, denial, approval, red-team run) is written to `audit.log`.
 5. **Validation of every AI output:** AI answers are never trusted blindly; the engine validates blocks and structure itself.
 
